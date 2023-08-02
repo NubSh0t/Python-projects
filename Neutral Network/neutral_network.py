@@ -1,16 +1,6 @@
 import math
 import random
 from copy import deepcopy
-import os
-import pickle
-from winsound import PlaySound
-from OpenGL.GL import *
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
-from OpenGL_accelerate import *
-import playsound
-import threading
-
 
 clamp = lambda value, minv, maxv: max(min(value, maxv), minv)
 remap = lambda value, min1, max1, min2, max2: min2 + (value - min1) * (max2 - min2) / (max1 - min1)
