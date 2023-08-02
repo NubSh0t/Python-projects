@@ -1,2 +1,2 @@
 # Python-projects
-Stores my projects based on python
+My projects based on python
