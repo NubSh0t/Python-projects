@@ -1,6 +1,7 @@
 import math
 import random
 from copy import deepcopy
+import pickle
 
 clamp = lambda value, minv, maxv: max(min(value, maxv), minv)
 remap = lambda value, min1, max1, min2, max2: min2 + (value - min1) * (max2 - min2) / (max1 - min1)
@@ -716,8 +717,6 @@ class NeutralNetwork():
 
         return n3
 
-
-
     def copy(self):
         return deepcopy(self)
 
@@ -736,3 +735,4 @@ class node():
         self.value = value
         self.sum=sum
         self.bias = 0
+        
