@@ -10,6 +10,4 @@ meanwhile 2048 is an ai playing the 2048 game (using the expectimax algorithm wi
 
 
 
-https://github.com/NubSh0t/Python-projects/assets/113845503/1c1e1e5d-7fb1-4a36-ab3b-ba755438de80
-
 
