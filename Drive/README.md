@@ -4,7 +4,9 @@ A car object driving on the map. Works with the key W , A , S.
 
 TODO:
 -Add boundary/collsion detection
+
 -made the map more realistic
+
 -implement a Neutral network to teach the car how to drive.
 
 To be used with the Window library: https://github.com/NubSh0t/Python-projects/tree/e23aaa226e965b1950007fc7bc05616876bf79d9/Window
