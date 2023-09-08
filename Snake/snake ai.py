@@ -1,4 +1,4 @@
-from Window import Window,Vector,math,remap,clamp
+from window import Window,Vector,math,remap,clamp
 from neutral_network import NeutralNetwork
 import random
 import time
