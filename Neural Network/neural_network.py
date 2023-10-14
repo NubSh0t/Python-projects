@@ -1,9 +1,37 @@
-class NeutralNetwork():
-    def sigmoid(x):
-        return 1/(1 + math.exp(-x))
+import math
+import random
+from copy import deepcopy
+import pickle
 
-    def relu(x):
-        return max(0,x)
+clamp = lambda value, minv, maxv: max(min(value, maxv), minv)
+remap = lambda value, min1, max1, min2, max2: min2 + (value - min1) * (max2 - min2) / (max1 - min1)
+
+class NeuralNetwork():
+    def sigmoid(x,deri=False):
+        if deri==False:
+            return 1/(1 + math.exp(-x))
+        else:
+            return NeuralNetwork.sigmoid(x)*(1-NeuralNetwork.sigmoid(x))
+
+    def relu(x,deri=False):
+        if deri==False:
+            if x>0:
+                return x
+            else:
+                return 0.01*x
+        else:
+            if x>0:
+                return 1
+            else:
+                return 0.01
+
+    def tan_inverse(x,deri=False):
+        if deri==False:
+            return 2*(math.atan(x)/math.pi)
+
+        else:
+            return 2/(math.pi*(1+pow(x,2)))
+
 
     def __init__(self,*args):
         if len(args) == 1:
@@ -81,6 +109,10 @@ class NeutralNetwork():
                 self.Nhidden5 = args[5]
                 self.Noutputs = args[6]
                 self.lr = args[7]
+
+            for i in range(len(args)):
+                if args[i]<=0:
+                    raise Exception("parameters value wrong")
         else:
             raise Exception("parameters wrong")
         self.inputs = []
@@ -115,79 +147,74 @@ class NeutralNetwork():
         
         for i in range(len(self.inputs)):
 
-            for j in range(len(self.outputs)):
-                self.weights[self.inputs[i],self.outputs[j]] = random.uniform(-1,1)
+            if len(self.hiddens1)>0:
 
-            for j in range(len(self.hiddens1)):
-                self.weights[self.inputs[i],self.hiddens1[j]] = random.uniform(-1,1)
+                for j in range(len(self.hiddens1)):
+                    self.weights[self.inputs[i],self.hiddens1[j]] = random.uniform(-1,1)
 
-            for j in range(len(self.hiddens2)):
-                self.weights[self.inputs[i],self.hiddens2[j]] = random.uniform(-1,1)
+            else:
 
-            for j in range(len(self.hiddens3)):
-                self.weights[self.inputs[i],self.hiddens3[j]] = random.uniform(-1,1)
+                for j in range(len(self.outputs)):
+                    self.weights[self.inputs[i],self.outputs[j]] = random.uniform(-1,1)
 
-            for j in range(len(self.hiddens4)):
-                self.weights[self.inputs[i],self.hiddens4[j]] = random.uniform(-1,1)
-
-            for j in range(len(self.hiddens5)):
-                self.weights[self.inputs[i],self.hiddens5[j]] = random.uniform(-1,1)
 
         for i in range(len(self.hiddens1)):
 
-            for j in range(len(self.outputs)):
-                self.weights[self.hiddens1[i],self.outputs[j]] = random.uniform(-1,1)
+            if len(self.hiddens2)>0:
 
-            for j in range(len(self.hiddens2)):
-                self.weights[self.hiddens1[i],self.hiddens2[j]] = random.uniform(-1,1)
+                for j in range(len(self.hiddens2)):
+                    self.weights[self.hiddens1[i],self.hiddens2[j]] = random.uniform(-1,1)
 
-            for j in range(len(self.hiddens3)):
-                self.weights[self.hiddens1[i],self.hiddens3[j]] = random.uniform(-1,1)
+            else:
 
-            for j in range(len(self.hiddens4)):
-                self.weights[self.hiddens1[i],self.hiddens4[j]] = random.uniform(-1,1)
+                for j in range(len(self.outputs)):
+                    self.weights[self.hiddens1[i],self.outputs[j]] = random.uniform(-1,1)
 
-            for j in range(len(self.hiddens5)):
-                self.weights[self.hiddens1[i],self.hiddens5[j]] = random.uniform(-1,1)
+
                 
         for i in range(len(self.hiddens2)):
 
-            for j in range(len(self.outputs)):
-                self.weights[self.hiddens2[i],self.outputs[j]] = random.uniform(-1,1)
+            if len(self.hiddens3)>0:
 
-            for j in range(len(self.hiddens3)):
-                self.weights[self.hiddens2[i],self.hiddens3[j]] = random.uniform(-1,1)
+                for j in range(len(self.hiddens3)):
+                    self.weights[self.hiddens2[i],self.hiddens3[j]] = random.uniform(-1,1)
 
-            for j in range(len(self.hiddens4)):
-                self.weights[self.hiddens2[i],self.hiddens4[j]] = random.uniform(-1,1)
+            else:
 
-            for j in range(len(self.hiddens5)):
-                self.weights[self.hiddens2[i],self.hiddens5[j]] = random.uniform(-1,1)
+                for j in range(len(self.outputs)):
+                    self.weights[self.hiddens2[i],self.outputs[j]] = random.uniform(-1,1)
+
+            
 
         for i in range(len(self.hiddens3)):
 
-            for j in range(len(self.outputs)):
-                self.weights[self.hiddens3[i],self.outputs[j]] = random.uniform(-1,1)
+            if len(self.hiddens4)>0:
 
-            for j in range(len(self.hiddens4)):
-                self.weights[self.hiddens3[i],self.hiddens4[j]] = random.uniform(-1,1)
+                for j in range(len(self.hiddens4)):
+                    self.weights[self.hiddens3[i],self.hiddens4[j]] = random.uniform(-1,1)
+                
+            else:
 
-            for j in range(len(self.hiddens5)):
-                self.weights[self.hiddens3[i],self.hiddens5[j]] = random.uniform(-1,1)
+                for j in range(len(self.outputs)):
+                    self.weights[self.hiddens3[i],self.outputs[j]] = random.uniform(-1,1)
+
 
         for i in range(len(self.hiddens4)):
 
-            for j in range(len(self.outputs)):
-                self.weights[self.hiddens4[i],self.outputs[j]] = random.uniform(-1,1)
+            if len(self.hiddens5)>0:
 
-            for j in range(len(self.hiddens5)):
-                self.weights[self.hiddens4[i],self.hiddens5[j]] = random.uniform(-1,1)
+                for j in range(len(self.hiddens5)):
+                    self.weights[self.hiddens4[i],self.hiddens5[j]] = random.uniform(-1,1)
+            else:
+
+                for j in range(len(self.outputs)):
+                    self.weights[self.hiddens4[i],self.outputs[j]] = random.uniform(-1,1)
+
 
         for i in range(len(self.hiddens5)):
 
             for j in range(len(self.outputs)):
                 self.weights[self.hiddens5[i],self.outputs[j]] = random.uniform(-1,1)
-
 
     def update(self):
         for i in range(len(self.hiddens1)):
@@ -197,103 +224,86 @@ class NeutralNetwork():
                 sum += self.weights[self.inputs[j],self.hiddens1[i]] * self.inputs[j].value
 
             self.hiddens1[i].sum = sum
-            self.hiddens1[i].value = NeutralNetwork.relu(sum)
+            self.hiddens1[i].value = NeuralNetwork.tan_inverse(sum)
 
         for i in range(len(self.hiddens2)):
             sum = self.hiddens2[i].bias
-
-            for j in range(len(self.inputs)):
-                sum += self.weights[self.inputs[j],self.hiddens2[i]] * self.inputs[j].value
 
             for j in range(len(self.hiddens1)):
                 sum += self.weights[self.hiddens1[j],self.hiddens2[i]] * self.hiddens1[j].value
 
             self.hiddens2[i].sum = sum
-            self.hiddens2[i].value = NeutralNetwork.relu(sum)
+            self.hiddens2[i].value = NeuralNetwork.relu(sum)
 
         for i in range(len(self.hiddens3)):
             sum = self.hiddens3[i].bias
-
-            for j in range(len(self.inputs)):
-                sum += self.weights[self.inputs[j],self.hiddens3[i]] * self.inputs[j].value
-
-            for j in range(len(self.hiddens1)):
-                sum += self.weights[self.hiddens1[j],self.hiddens3[i]] * self.hiddens1[j].value
 
             for j in range(len(self.hiddens2)):
                 sum += self.weights[self.hiddens2[j],self.hiddens3[i]] * self.hiddens2[j].value
 
             self.hiddens3[i].sum = sum
-            self.hiddens3[i].value = NeutralNetwork.relu(sum)
+            self.hiddens3[i].value = NeuralNetwork.tan_inverse(sum)
 
         for i in range(len(self.hiddens4)):
             sum = self.hiddens4[i].bias
-
-            for j in range(len(self.inputs)):
-                sum += self.weights[self.inputs[j],self.hiddens4[i]] * self.inputs[j].value
-
-            for j in range(len(self.hiddens1)):
-                sum += self.weights[self.hiddens1[j],self.hiddens4[i]] * self.hiddens1[j].value
-
-            for j in range(len(self.hiddens2)):
-                sum += self.weights[self.hiddens2[j],self.hiddens4[i]] * self.hiddens2[j].value
 
             for j in range(len(self.hiddens3)):
                 sum += self.weights[self.hiddens3[j],self.hiddens4[i]] * self.hiddens3[j].value
 
             self.hiddens4[i].sum = sum
-            self.hiddens4[i].value = NeutralNetwork.relu(sum)
+            self.hiddens4[i].value = NeuralNetwork.relu(sum)
 
         for i in range(len(self.hiddens5)):
             sum = self.hiddens5[i].bias
-
-            for j in range(len(self.inputs)):
-                sum += self.weights[self.inputs[j],self.hiddens5[i]] * self.inputs[j].value
-
-            for j in range(len(self.hiddens1)):
-                sum += self.weights[self.hiddens1[j],self.hiddens5[i]] * self.hiddens1[j].value
-
-            for j in range(len(self.hiddens2)):
-                sum += self.weights[self.hiddens2[j],self.hiddens5[i]] * self.hiddens2[j].value
-
-            for j in range(len(self.hiddens3)):
-                sum += self.weights[self.hiddens3[j],self.hiddens5[i]] * self.hiddens3[j].value
 
             for j in range(len(self.hiddens4)):
                 sum += self.weights[self.hiddens4[j],self.hiddens5[i]] * self.hiddens4[j].value
 
             self.hiddens5[i].sum = sum
-            self.hiddens5[i].value = NeutralNetwork.relu(sum)
+            self.hiddens5[i].value = NeuralNetwork.tan_inverse(sum)
 
         for i in range(len(self.outputs)):
             sum = self.outputs[i].bias
 
-            for j in range(len(self.inputs)):
-                sum += self.weights[self.inputs[j],self.outputs[i]] * self.inputs[j].value
+            if len(self.hiddens1)<1:
 
-            for j in range(len(self.hiddens1)):
-                sum += self.weights[self.hiddens1[j],self.outputs[i]] * self.hiddens1[j].value
+                for j in range(len(self.inputs)):
+                    sum += self.weights[self.inputs[j],self.outputs[i]] * self.inputs[j].value
 
-            for j in range(len(self.hiddens2)):
-                sum += self.weights[self.hiddens2[j],self.outputs[i]] * self.hiddens2[j].value
+            elif len(self.hiddens2)<1:  
 
-            for j in range(len(self.hiddens3)):
-                sum += self.weights[self.hiddens3[j],self.outputs[i]] * self.hiddens3[j].value
+                for j in range(len(self.hiddens1)):
+                    sum += self.weights[self.hiddens1[j],self.outputs[i]] * self.hiddens1[j].value
 
-            for j in range(len(self.hiddens4)):
-                sum += self.weights[self.hiddens4[j],self.outputs[i]] * self.hiddens4[j].value
+            elif len(self.hiddens3)<1:  
 
-            for j in range(len(self.hiddens5)):
-                sum += self.weights[self.hiddens5[j],self.outputs[i]] * self.hiddens5[j].value
+                for j in range(len(self.hiddens2)):
+                    sum += self.weights[self.hiddens2[j],self.outputs[i]] * self.hiddens2[j].value
+
+            elif len(self.hiddens4)<1:  
+
+                for j in range(len(self.hiddens3)):
+                    sum += self.weights[self.hiddens3[j],self.outputs[i]] * self.hiddens3[j].value
+
+            elif len(self.hiddens5)<1:  
+
+                for j in range(len(self.hiddens4)):
+                    sum += self.weights[self.hiddens4[j],self.outputs[i]] * self.hiddens4[j].value
+
+            else:
+
+                for j in range(len(self.hiddens5)):
+                    sum += self.weights[self.hiddens5[j],self.outputs[i]] * self.hiddens5[j].value
 
             self.outputs[i].sum = sum
-            self.outputs[i].value = NeutralNetwork.sigmoid(sum)
+            self.outputs[i].value = NeuralNetwork.sigmoid(sum)
 
 
-    def train(self,correctarr):
+    def train(self,inp,correctarr):
+        self.input(inp)
         self.update()
 
-        cost=self.cost(correctarr)
+        loss=self.loss(correctarr)
 
         sumh1=[0]*self.Nhidden1
         sumh2=[0]*self.Nhidden2
@@ -303,95 +313,80 @@ class NeutralNetwork():
 
         for i in range(self.Noutputs):
 
-            bias=2*(self.outputs[i].value-correctarr[i])*(NeutralNetwork.sigmoid(self.outputs[i].sum)*(1-NeutralNetwork.sigmoid(self.outputs[i].sum)))*self.lr
-            self.outputs[i].bias-=bias #update bias
+            bias=2*(self.outputs[i].value-correctarr[i])*NeuralNetwork.sigmoid(self.outputs[i].sum,True)*self.lr
+
+            if len(self.hiddens5)>0:
             
-            for j in range(self.Nhidden5):
-                weight=bias*self.hiddens5[j].value
-                h5=bias*self.weights[self.hiddens5[j],self.outputs[i]]
-                sumh5[j]+=h5 #store previous layer activation
+                for j in range(self.Nhidden5):
+                    weight=bias*self.hiddens5[j].value
+                    h5=bias*self.weights[self.hiddens5[j],self.outputs[i]]
+                    sumh5[j]+=h5 #store previous layer activation
 
-                self.weights[self.hiddens5[j],self.outputs[i]]-= weight #update weight
+                    self.weights[self.hiddens5[j],self.outputs[i]]-= weight #update weight
 
-            for j in range(self.Nhidden4):
-                weight=bias*self.hiddens4[j].value
-                h4=bias*self.weights[self.hiddens4[j],self.outputs[i]]
-                sumh4[j]+=h4 #store previous layer activation
+            elif len(self.hiddens4)>0:
 
-                self.weights[self.hiddens4[j],self.outputs[i]]-= weight #update weight
+                for j in range(self.Nhidden4):
+                    weight=bias*self.hiddens4[j].value
+                    h4=bias*self.weights[self.hiddens4[j],self.outputs[i]]
+                    sumh4[j]+=h4 #store previous layer activation
 
-            for j in range(self.Nhidden3):
-                weight=bias*self.hiddens3[j].value
-                h3=bias*self.weights[self.hiddens3[j],self.outputs[i]]
-                sumh3[j]+=h3 #store previous layer activation
+                    self.weights[self.hiddens4[j],self.outputs[i]]-= weight #update weight
 
-                self.weights[self.hiddens3[j],self.outputs[i]]-= weight #update weight
+            elif len(self.hiddens3)> 0:
 
-            for j in range(self.Nhidden2):
-                weight=bias*self.hiddens2[j].value
-                h2=bias*self.weights[self.hiddens2[j],self.outputs[i]]
-                sumh2[j]+=h2 #store previous layer activation
+                for j in range(self.Nhidden3):
+                    weight=bias*self.hiddens3[j].value
+                    h3=bias*self.weights[self.hiddens3[j],self.outputs[i]]
+                    sumh3[j]+=h3 #store previous layer activation
 
-                self.weights[self.hiddens2[j],self.outputs[i]]-= weight #update weight
+                    self.weights[self.hiddens3[j],self.outputs[i]]-= weight #update weight
 
-            for j in range(self.Nhidden1):
-                weight=bias*self.hiddens1[j].value
-                h1=bias*self.weights[self.hiddens1[j],self.outputs[i]]
-                sumh1[j]+=h1 #store previous layer activation
+            elif len(self.hiddens2)> 0:
 
-                self.weights[self.hiddens1[j],self.outputs[i]]-= weight #update weight
+                for j in range(self.Nhidden2):
+                    weight=bias*self.hiddens2[j].value
+                    h2=bias*self.weights[self.hiddens2[j],self.outputs[i]]
+                    sumh2[j]+=h2 #store previous layer activation
 
-            for j in range(self.Ninputs):
-                weight=bias*self.inputs[j].value
+                    self.weights[self.hiddens2[j],self.outputs[i]]-= weight #update weight
 
-                self.weights[self.inputs[j],self.outputs[i]]-= weight #update weight
+            elif len(self.hiddens1)> 0:
+
+                for j in range(self.Nhidden1):
+                    weight=bias*self.hiddens1[j].value
+                    h1=bias*self.weights[self.hiddens1[j],self.outputs[i]]
+                    sumh1[j]+=h1 #store previous layer activation
+
+                    self.weights[self.hiddens1[j],self.outputs[i]]-= weight #update weight
+
+            else:
+
+                for j in range(self.Ninputs):
+                    weight=bias*self.inputs[j].value
+
+                    self.weights[self.inputs[j],self.outputs[i]]-= weight #update weight
+
+            self.outputs[i].bias-=bias
+
 
         for i in range(self.Nhidden5):
 
-            if self.hiddens5[i].sum>0:
-                bias=sumh5[i]*self.lr*1
-            else:
-                bias=0
+            bias=sumh5[i]*self.lr*NeuralNetwork.tan_inverse(self.hiddens5[i].sum,True)
 
             for j in range(self.Nhidden4):
                 weight=bias*self.hiddens4[j].value
                 h4=bias*self.weights[self.hiddens4[j],self.hiddens5[i]]
                 sumh4[j]+=h4 #store previous layer activation
 
-                self.weights[self.hiddens4[j],self.hidden5[i]]-= weight #update weight
+                self.weights[self.hiddens4[j],self.hiddens5[i]]-= weight #update weight
 
-            for j in range(self.Nhidden3):
-                weight=bias*self.hiddens3[j].value
-                h3=bias*self.weights[self.hiddens3[j],self.hiddens5[i]]
-                sumh3[j]+=h3 #store previous layer activation
+            self.hiddens5[i].bias-=bias
 
-                self.weights[self.hiddens3[j],self.hiddens5[i]]-= weight #update weight
-
-            for j in range(self.Nhidden2):
-                weight=bias*self.hiddens2[j].value
-                h2=bias*self.weights[self.hiddens2[j],self.hiddens5[i]]
-                sumh2[j]+=h2 #store previous layer activation
-
-                self.weights[self.hiddens2[j],self.hiddens5[i]]-= weight #update weight
-
-            for j in range(self.Nhidden1):
-                weight=bias*self.hiddens1[j].value
-                h1=bias*self.weights[self.hiddens1[j],self.hiddens5[i]]
-                sumh1[j]+=h1 #store previous layer activation
-
-                self.weights[self.hiddens1[j],self.hiddens5[i]]-= weight #update weight
-
-            for j in range(self.Ninputs):
-                weight=bias*self.inputs[j].value
-
-                self.weights[self.inputs[j],self.hiddens5[i]]-= weight #update weight
 
         for i in range(self.Nhidden4):
 
-            if self.hiddens4[i].sum>0:
-                bias=sumh4[i]*self.lr*1
-            else:
-                bias=0
+            bias=sumh4[i]*self.lr*NeuralNetwork.relu(self.hiddens4[i].sum,True)
 
             for j in range(self.Nhidden3):
                 weight=bias*self.hiddens3[j].value
@@ -400,31 +395,12 @@ class NeutralNetwork():
 
                 self.weights[self.hiddens3[j],self.hiddens4[i]]-= weight #update weight
 
-            for j in range(self.Nhidden2):
-                weight=bias*self.hiddens2[j].value
-                h2=bias*self.weights[self.hiddens2[j],self.hiddens4[i]]
-                sumh2[j]+=h2 #store previous layer activation
+            self.hiddens4[i].bias-=bias
 
-                self.weights[self.hiddens2[j],self.hiddens4[i]]-= weight #update weight
-
-            for j in range(self.Nhidden1):
-                weight=bias*self.hiddens1[j].value
-                h1=bias*self.weights[self.hiddens1[j],self.hiddens4[i]]
-                sumh1[j]+=h1 #store previous layer activation
-
-                self.weights[self.hiddens1[j],self.hiddens4[i]]-= weight #update weight
-
-            for j in range(self.Ninputs):
-                weight=bias*self.inputs[j].value
-
-                self.weights[self.inputs[j],self.hiddens4[i]]-= weight #update weight
 
         for i in range(self.Nhidden3):
 
-            if self.hiddens3[i].sum>0:
-                bias=sumh3[i]*self.lr*1
-            else:
-                bias=0
+            bias=sumh3[i]*self.lr*NeuralNetwork.tan_inverse(self.hiddens3[i].sum,True)
 
             for j in range(self.Nhidden2):
                 weight=bias*self.hiddens2[j].value
@@ -433,24 +409,12 @@ class NeutralNetwork():
 
                 self.weights[self.hiddens2[j],self.hiddens3[i]]-= weight #update weight
 
-            for j in range(self.Nhidden1):
-                weight=bias*self.hiddens1[j].value
-                h1=bias*self.weights[self.hiddens1[j],self.hiddens3[i]]
-                sumh1[j]+=h1 #store previous layer activation
+            self.hiddens3[i].bias-=bias
 
-                self.weights[self.hiddens1[j],self.hiddens3[i]]-= weight #update weight
-
-            for j in range(self.Ninputs):
-                weight=bias*self.inputs[j].value
-
-                self.weights[self.inputs[j],self.hiddens3[i]]-= weight #update weight
 
         for i in range(self.Nhidden2):
 
-            if self.hiddens2[i].sum>0:
-                bias=sumh2[i]*self.lr*1
-            else:
-                bias=0
+            bias=sumh2[i]*self.lr*NeuralNetwork.relu(self.hiddens2[i].sum,True)
 
             for j in range(self.Nhidden1):
                 weight=bias*self.hiddens1[j].value
@@ -459,35 +423,32 @@ class NeutralNetwork():
 
                 self.weights[self.hiddens1[j],self.hiddens2[i]]-= weight #update weight
 
-            for j in range(self.Ninputs):
-                weight=bias*self.inputs[j].value
-
-                self.weights[self.inputs[j],self.hiddens2[i]]-= weight #update weight
+            self.hiddens2[i].bias-=bias
 
         
         for i in range(self.Nhidden1):
 
-            if self.hiddens1[i].sum>0:
-                bias=sumh1[i]*self.lr*1
-            else:
-                bias=0
+            bias=sumh1[i]*self.lr*NeuralNetwork.tan_inverse(self.hiddens1[i].sum,True)
 
             for j in range(self.Ninputs):
                 weight=bias*self.inputs[j].value
 
                 self.weights[self.inputs[j],self.hiddens1[i]]-= weight #update weight
+
+            self.hiddens1[i].bias-=bias
+
         
-        return cost
+        return loss
 
 
-    def cost(self,correctarr):
+    def loss(self,correctarr):
         if len(self.outputs)!=len(correctarr):
             raise Exception("no# of output in neutral network and no# of output in correct array not equal")
-        cost=0
+        loss=0
         for i in range(len(correctarr)):
-            cost+=pow(self.outputs[i].value-correctarr[i],2)
+            loss+=pow(self.outputs[i].value-correctarr[i],2)
 
-        return cost
+        return loss
 
 
     def guess(self):
@@ -499,8 +460,8 @@ class NeutralNetwork():
     def input(self,arr):
         if len(arr)!=len(self.inputs):
             raise Exception("no# of inputs received and no# of inputs in neutral network not equal")
-        
-        for i in range(len(arr)-1):
+    
+        for i in range(len(arr)):
             if arr[i]<0 or arr[i]>1:
                 raise Exception("Input not normalised")
             self.inputs[i].value = arr[i]
@@ -518,189 +479,74 @@ class NeutralNetwork():
                 else:
                     self.weights[k]*=-1
 
-        for node in self.hiddens1:
-            if random.uniform(0,1) <= rate/100:
-                n= random.uniform(0,1)
-                if n <= 25/100:
-                    node.bias= random.uniform(-1,1)
-                elif n <= 50/100:
-                    node.bias*= random.uniform(0.5,1.5)
-                elif n <= 75/100:
-                    node.bias+= random.uniform(-1,1)
-                else:
-                    node.bias*=-1
-    
-        for node in self.hiddens2:
-            if random.uniform(0,1) <= rate/100:
-                n= random.uniform(0,1)
-                if n <= 25/100:
-                    node.bias= random.uniform(-1,1)
-                elif n <= 50/100:
-                    node.bias*= random.uniform(0.5,1.5)
-                elif n <= 75/100:
-                    node.bias+= random.uniform(-1,1)
-                else:
-                    node.bias*=-1
-
-        for node in self.hiddens3:
-            if random.uniform(0,1) <= rate/100:
-                n= random.uniform(0,1)
-                if n <= 25/100:
-                    node.bias= random.uniform(-1,1)
-                elif n <= 50/100:
-                    node.bias*= random.uniform(0.5,1.5)
-                elif n <= 75/100:
-                    node.bias+= random.uniform(-1,1)
-                else:
-                    node.bias*=-1
-
-        for node in self.hiddens4:
-            if random.uniform(0,1) <= rate/100:
-                n= random.uniform(0,1)
-                if n <= 25/100:
-                    node.bias= random.uniform(-1,1)
-                elif n <= 50/100:
-                    node.bias*= random.uniform(0.5,1.5)
-                elif n <= 75/100:
-                    node.bias+= random.uniform(-1,1)
-                else:
-                    node.bias*=-1
-
-        for node in self.hiddens5:
-            if random.uniform(0,1) <= rate/100:
-                n= random.uniform(0,1)
-                if n <= 25/100:
-                    node.bias= random.uniform(-1,1)
-                elif n <= 50/100:
-                    node.bias*= random.uniform(0.5,1.5)
-                elif n <= 75/100:
-                    node.bias+= random.uniform(-1,1)
-                else:
-                    node.bias*=-1
-
-        for node in self.outputs:
-            if random.uniform(0,1) <= rate/100:
-                n= random.uniform(0,1)
-                if n <= 25/100:
-                    node.bias= random.uniform(-1,1)
-                elif n <= 50/100:
-                    node.bias*= random.uniform(0.5,1.5)
-                elif n <= 75/100:
-                    node.bias+= random.uniform(-1,1)
-                else:
-                    node.bias*=-1
-
     def crossbreed(self,n2):
         n3=n2.copy()
         for i in range(self.Noutputs):
 
-            if random.uniform(0,1) <= 50/100:
-                n3.outputs[i].bias=self.outputs[i].bias
+            if self.Nhidden5>0:
 
-            for j in range(self.Nhidden5):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens5[j],n3.outputs[i]]=self.weights[self.hiddens5[j],self.outputs[i]]
+                for j in range(self.Nhidden5):
+                    if random.uniform(0,1) <= 50/100:
+                        n3.weights[n3.hiddens5[j],n3.outputs[i]]=self.weights[self.hiddens5[j],self.outputs[i]]
 
-            for j in range(self.Nhidden4):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens4[j],n3.outputs[i]]=self.weights[self.hiddens4[j],self.outputs[i]]
+            elif self.Nhidden4>0:
 
-            for j in range(self.Nhidden3):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens3[j],n3.outputs[i]]=self.weights[self.hiddens3[j],self.outputs[i]]
+                for j in range(self.Nhidden4):
+                    if random.uniform(0,1) <= 50/100:
+                        n3.weights[n3.hiddens4[j],n3.outputs[i]]=self.weights[self.hiddens4[j],self.outputs[i]]
 
-            for j in range(self.Nhidden2):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens2[j],n3.outputs[i]]=self.weights[self.hiddens2[j],self.outputs[i]]
+            elif self.Nhidden3>0:
 
-            for j in range(self.Nhidden1):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens1[j],n3.outputs[i]]=self.weights[self.hiddens1[j],self.outputs[i]]
+                for j in range(self.Nhidden3):
+                    if random.uniform(0,1) <= 50/100:
+                        n3.weights[n3.hiddens3[j],n3.outputs[i]]=self.weights[self.hiddens3[j],self.outputs[i]]
 
-            for j in range(self.Ninputs):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.inputs[j],n3.outputs[i]]=self.weights[self.inputs[j],self.outputs[i]]
+            elif self.Nhidden2>0:
+
+                for j in range(self.Nhidden2):
+                    if random.uniform(0,1) <= 50/100:
+                        n3.weights[n3.hiddens2[j],n3.outputs[i]]=self.weights[self.hiddens2[j],self.outputs[i]]
+
+            elif self.Nhidden1>0:
+
+                for j in range(self.Nhidden1):
+                    if random.uniform(0,1) <= 50/100:
+                        n3.weights[n3.hiddens1[j],n3.outputs[i]]=self.weights[self.hiddens1[j],self.outputs[i]]
+
+            else:
+
+                for j in range(self.Ninputs):
+                    if random.uniform(0,1) <= 50/100:
+                        n3.weights[n3.inputs[j],n3.outputs[i]]=self.weights[self.inputs[j],self.outputs[i]]
 
         for i in range(self.Nhidden5):
-
-            if random.uniform(0,1) <= 50/100:
-                n3.hiddens5[i].bias=self.hiddens5[i].bias
 
             for j in range(self.Nhidden4):
                 if random.uniform(0,1) <= 50/100:
                     n3.weights[n3.hiddens4[j],n3.hiddens5[i]]=self.weights[self.hiddens4[j],hiddens5[i]]
 
-            for j in range(self.Nhidden3):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens3[j],n3.hiddens5[i]]=self.weights[self.hiddens3[j],self.hiddens5[i]]
-
-            for j in range(self.Nhidden2):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens2[j],n3.hiddens5[i]]=self.weights[self.hiddens2[j],self.hiddens5[i]]
-
-            for j in range(self.Nhidden1):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens1[j],n3.hiddens5[i]]=self.weights[self.hiddens1[j],self.hiddens5[i]]
-
-            for j in range(self.Ninputs):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.inputs[j],n3.hiddens5[i]]=self.weights[self.inputs[j],self.hiddens5[i]]
-
         for i in range(self.Nhidden4):
-
-            if random.uniform(0,1) <= 50/100:
-                n3.hiddens4[i].bias=self.hiddens4[i].bias
 
             for j in range(self.Nhidden3):
                 if random.uniform(0,1) <= 50/100:
                     n3.weights[n3.hiddens3[j],n3.hiddens4[i]]=self.weights[self.hiddens3[j],self.hiddens4[i]]
 
-            for j in range(self.Nhidden2):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens2[j],n3.hiddens4[i]]=self.weights[self.hiddens2[j],self.hiddens4[i]]
-
-            for j in range(self.Nhidden1):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens1[j],n3.hiddens4[i]]=self.weights[self.hiddens1[j],self.hiddens4[i]]
-
-            for j in range(self.Ninputs):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.inputs[j],n3.hiddens4[i]]=self.weights[self.inputs[j],self.hiddens4[i]]
 
         for i in range(self.Nhidden3):
-
-            if random.uniform(0,1) <= 50/100:
-                n3.hiddens3[i].bias=self.hiddens3[i].bias
 
             for j in range(self.Nhidden2):
                 if random.uniform(0,1) <= 50/100:
                     n3.weights[n3.hiddens2[j],n3.hiddens3[i]]=self.weights[self.hiddens2[j],self.hiddens3[i]]
 
-            for j in range(self.Nhidden1):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.hiddens1[j],n3.hiddens3[i]]=self.weights[self.hiddens1[j],self.hiddens3[i]]
-
-            for j in range(self.Ninputs):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.inputs[j],n3.hiddens3[i]]=self.weights[self.inputs[j],self.hiddens3[i]]
 
         for i in range(self.Nhidden2):
-
-            if random.uniform(0,1) <= 50/100:
-                n3.hiddens2[i].bias=self.hiddens2[i].bias
 
             for j in range(self.Nhidden1):
                 if random.uniform(0,1) <= 50/100:
                     n3.weights[n3.hiddens1[j],n3.hiddens2[i]]=self.weights[self.hiddens1[j],self.hiddens2[i]]
 
-            for j in range(self.Ninputs):
-                if random.uniform(0,1) <= 50/100:
-                    n3.weights[n3.inputs[j],n3.hiddens2[i]]=self.weights[self.inputs[j],self.hiddens2[i]]
 
         for i in range(self.Nhidden1):
-
-            if random.uniform(0,1) <= 50/100:
-                n3.hiddens1[i].bias=self.hiddens1[i].bias
 
             for j in range(self.Ninputs):
                 if random.uniform(0,1) <= 50/100:
@@ -726,4 +572,4 @@ class node():
     def __init__(self,value,sum=0):
         self.value = value
         self.sum=sum
-        self.bias = 0
+        self.bias=0
