@@ -1,4 +1,4 @@
-Tictactoe with a Minimax algotihm ai used which plays tictactoe and looks into the future so cannot be beaten.
+Tictactoe with a Minimax algotihm ai used which plays tictactoe and looks into the future so it cannot be beaten.
 
 To be used with the Window library: https://github.com/NubSh0t/Python-projects/tree/e23aaa226e965b1950007fc7bc05616876bf79d9/Window
 
