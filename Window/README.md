@@ -1,1 +1,1 @@
-A wrapper drawing library to create a window and graphics using PYOPENGL for my ease.
+A wrapper drawing library made by me to create a window and graphics using PYOPENGL for my ease.
